@@ -1,17 +1,11 @@
-// === CONFIG ===
 const SHEET_ID = "19Iktmli0N9ECNHL33lPVuzM2dd3fD5dFqg5NqlBrt8Q";
-// If your data isn't on the first sheet/tab, set its gid below (from the sheet URL). Otherwise leave "".
-const SHEET_GID = ""; // e.g., "0" or "123456789"
+const SHEET_GID = "";
 
-// Expected columns (left to right): Name | Website | Address | Email | Phone | State | City | Zip
-
-// === STATE ===
 let programs = [];
 let filtered = [];
 let currentPage = 1;
 const perPage = 12;
 
-// === HELPERS ===
 const by = id => document.getElementById(id);
 const safe = v => (v ?? "").toString().trim();
 const norm = v => safe(v).toLowerCase();
@@ -22,21 +16,14 @@ function gvizUrl() {
 }
 
 function parseGviz(text){
-  // Try robust regex capture first
   const match = text.match(/google\.visualization\.Query\.setResponse\((.*)\);?\s*$/s);
-  if (match && match[1]) {
-    return JSON.parse(match[1]);
-  }
-  // Fallback: slice first { to last }
+  if (match && match[1]) return JSON.parse(match[1]);
   const start = text.indexOf('{');
   const end = text.lastIndexOf('}');
-  if (start !== -1 && end !== -1) {
-    return JSON.parse(text.slice(start, end + 1));
-  }
+  if (start !== -1 && end !== -1) return JSON.parse(text.slice(start, end + 1));
   throw new Error('Unrecognized GViz response');
 }
 
-// === FETCH & PARSE ===
 async function loadPrograms() {
   const status = by("status");
   status.textContent = "Loading programs…";
@@ -47,8 +34,6 @@ async function loadPrograms() {
     const data = parseGviz(text);
 
     const rows = data?.table?.rows || [];
-    console.log("[CNA] rows fetched:", rows.length);
-
     programs = rows.map(r => {
       const c = r.c || [];
       const name   = safe(c[0]?.v);
@@ -64,21 +49,20 @@ async function loadPrograms() {
     }).filter(p => p.name);
 
     if (!programs.length) {
-      status.textContent = "No programs found. Check: (1) Sheet sharing is 'Anyone with link can view', (2) Column order matches, (3) Correct sheet tab (gid).";
+      status.textContent = "No programs found. Check sheet sharing and column order.";
       return;
     }
 
     status.remove();
-    populateFilters();
+    populateStateFilter();
     applyFilters();
   } catch (err) {
-    console.error("[CNA] fetch/parse error:", err);
-    by("status").textContent = "Error loading programs. Make sure the Google Sheet is public and the column order is correct.";
+    console.error(err);
+    by("status").textContent = "Error loading programs.";
   }
 }
 
-// === FILTERS ===
-function populateFilters() {
+function populateStateFilter() {
   const states = [...new Set(programs.map(p => p.state).filter(Boolean))].sort();
   const stateSel = by("stateFilter");
   stateSel.innerHTML = '<option value="">All States</option>';
@@ -88,8 +72,17 @@ function populateFilters() {
     opt.textContent = s;
     stateSel.appendChild(opt);
   });
+  updateCityFilter();
+}
 
-  const cities = [...new Set(programs.map(p => p.city).filter(Boolean))].sort();
+function updateCityFilter() {
+  const selectedState = norm(by("stateFilter").value);
+  let cities = programs
+    .filter(p => !selectedState || norm(p.state) === selectedState)
+    .map(p => p.city)
+    .filter(Boolean);
+  cities = [...new Set(cities)].sort();
+
   const citySel = by("cityFilter");
   citySel.innerHTML = '<option value="">All Cities</option>';
   cities.forEach(c => {
@@ -123,7 +116,6 @@ function applyFilters() {
   render();
 }
 
-// === RENDER ===
 function render() {
   renderList();
   renderPagination();
@@ -152,7 +144,7 @@ function renderList() {
       <p class="meta"><strong>Address:</strong> ${p.address || "—"}</p>
       <p class="meta"><strong>Phone:</strong> ${p.phone || "—"}</p>
       <p class="meta"><strong>Email:</strong> ${p.email ? `<a href="mailto:${p.email}">${p.email}</a>` : "—"}</p>
-      ${website ? `<p><a target="_blank" rel="noopener" href="${website}">Visit Website</a></p>` : ""}
+      ${website ? `<p style="margin-top:12px;"><a target="_blank" rel="noopener" href="${website}">Visit Website</a></p>` : ""}
     `;
     root.appendChild(card);
   });
@@ -164,14 +156,12 @@ function renderPagination() {
   nav.innerHTML = "";
   if (total <= 1) return;
 
-  // Prev
   const prev = document.createElement("button");
   prev.textContent = "Prev";
   prev.disabled = currentPage === 1;
   prev.onclick = () => { currentPage--; render(); };
   nav.appendChild(prev);
 
-  // Show only 3 numbers max, sliding window with ellipses at edges
   const maxVis = 3;
   let start = Math.max(1, currentPage - 1);
   let end = Math.min(total, start + maxVis - 1);
@@ -181,15 +171,12 @@ function renderPagination() {
     nav.appendChild(makePageBtn(1));
     if (start > 2) addEllipsis(nav);
   }
-
   for (let i = start; i <= end; i++) nav.appendChild(makePageBtn(i));
-
   if (end < total) {
     if (end < total - 1) addEllipsis(nav);
     nav.appendChild(makePageBtn(total));
   }
 
-  // Next
   const next = document.createElement("button");
   next.textContent = "Next";
   next.disabled = currentPage === total;
@@ -211,10 +198,8 @@ function addEllipsis(nav){
   nav.appendChild(el);
 }
 
-// === WIRE EVENTS ===
 by("search").addEventListener("input", applyFilters);
-by("stateFilter").addEventListener("change", applyFilters);
+by("stateFilter").addEventListener("change", () => { updateCityFilter(); applyFilters(); });
 by("cityFilter").addEventListener("change", applyFilters);
 
-// === INIT ===
 loadPrograms();
