@@ -50,7 +50,7 @@ html,body{margin:0;padding:0;background:var(--bg);color:var(--deep);font-family:
   box-shadow:0 6px 18px rgba(0,0,0,.05);
   border-top:4px solid var(--green);
 }
-.card h3{margin:0 0 8px 0;color:var(--deep)}
+.card h3{margin:0 0 8px 0;color:var(--purple)}
 .card p{margin:6px 0;font-size:.92em}
 .card a{color:var(--purple);text-decoration:none;font-weight:600}
 .card a:hover{text-decoration:underline}
