@@ -51,6 +51,9 @@ async function loadPrograms() {
       const address = [street, city, state, zip].filter(Boolean).join(", ");
       return { name, website: site, address, email, phone, state, city, zip };
     }).filter(p => p.name);
+    // Debug: log all programs and their states
+console.log("Loaded programs:", programs.map(p => [p.name, p.state]));
+    
 
     if (!programs.length) {
       status.textContent = "No programs found. Check sharing, column order, or gid.";
