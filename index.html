@@ -1,25 +1,35 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>CNA Program Finder</title>
+  
+  <!-- Google Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap" rel="stylesheet">
+  
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>CNA Program Finder</h1>
+  <header>
+    <h1>Find a CNA Program</h1>
+  </header>
 
-  <div class="filters">
-    <input type="text" id="search" placeholder="Search by name or address...">
+  <section class="filters">
+    <input type="text" id="search" placeholder="Search by program name...">
     <select id="stateFilter">
       <option value="">All States</option>
     </select>
     <select id="cityFilter">
       <option value="">All Cities</option>
     </select>
-  </div>
+  </section>
 
-  <div id="results" class="results"></div>
+  <main id="programList" class="card-grid"></main>
+
+  <div class="pagination" id="pagination"></div>
 
   <script src="script.js"></script>
 </body>
