@@ -1,6 +1,6 @@
 :root{
-  --deep:#1A1B3A;
-  --purple:#5C6BF2;
+  --deep:#202241;
+  --purple:#9CA0EA;
   --green:#0EA5A5;
   --bg:#FFFFFF;
   --muted:#F5F7FB;
@@ -71,3 +71,12 @@ html,body{margin:0;padding:0;background:var(--bg);color:var(--deep);font-family:
 .page-ellipsis{padding:0 2px;color:#6a6f8a}
 
 .site-footer{border-top:1px solid #eef1f7;padding:16px;text-align:center;background:#fafbfe}
+
+.meta a[href^="mailto:"] {
+  word-break: break-all;
+  display: inline-block;
+  max-width: 100%;
+}
+.meta.long-email {
+  font-size: 0.82em;
+}

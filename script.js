@@ -143,7 +143,7 @@ function renderList() {
       <h3>${p.name}</h3>
       <p class="meta"><strong>Address:</strong> ${p.address || "—"}</p>
       <p class="meta"><strong>Phone:</strong> ${p.phone || "—"}</p>
-      <p class="meta"><strong>Email:</strong> ${p.email ? `<a href="mailto:${p.email}">${p.email}</a>` : "—"}</p>
+      <p class="meta${p.email && p.email.length>25 ? " long-email" : ""}"><strong>Email:</strong> ${p.email ? `<a href="mailto:${p.email}">${p.email}</a>` : "—"}</p>
       ${website ? `<p style="margin-top:12px;"><a target="_blank" rel="noopener" href="${website}">Visit Website</a></p>` : ""}
     `;
     root.appendChild(card);
