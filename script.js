@@ -1,11 +1,16 @@
+// === CONFIG ===
 const SHEET_ID = "19Iktmli0N9ECNHL33lPVuzM2dd3fD5dFqg5NqlBrt8Q";
-const SHEET_GID = "";
+const SHEET_GID = ""; // set if your data is not on the first tab
 
+// Expected columns: Name | Website | Address | Email | Phone | State | City | Zip
+
+// === STATE ===
 let programs = [];
 let filtered = [];
 let currentPage = 1;
 const perPage = 12;
 
+// === HELPERS ===
 const by = id => document.getElementById(id);
 const safe = v => (v ?? "").toString().trim();
 const norm = v => safe(v).toLowerCase();
@@ -18,22 +23,21 @@ function gvizUrl() {
 function parseGviz(text){
   const match = text.match(/google\.visualization\.Query\.setResponse\((.*)\);?\s*$/s);
   if (match && match[1]) return JSON.parse(match[1]);
-  const start = text.indexOf('{');
-  const end = text.lastIndexOf('}');
+  const start = text.indexOf('{'); const end = text.lastIndexOf('}');
   if (start !== -1 && end !== -1) return JSON.parse(text.slice(start, end + 1));
   throw new Error('Unrecognized GViz response');
 }
 
+// === LOAD ===
 async function loadPrograms() {
   const status = by("status");
   status.textContent = "Loading programs…";
   try {
     const res = await fetch(gvizUrl(), { cache: "no-store" });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const text = await res.text();
-    const data = parseGviz(text);
-
+    const data = parseGviz(await res.text());
     const rows = data?.table?.rows || [];
+
     programs = rows.map(r => {
       const c = r.c || [];
       const name   = safe(c[0]?.v);
@@ -49,27 +53,27 @@ async function loadPrograms() {
     }).filter(p => p.name);
 
     if (!programs.length) {
-      status.textContent = "No programs found. Check sheet sharing and column order.";
+      status.textContent = "No programs found. Check sharing, column order, or gid.";
       return;
     }
 
     status.remove();
     populateStateFilter();
     applyFilters();
-  } catch (err) {
-    console.error(err);
-    by("status").textContent = "Error loading programs.";
+  } catch (e) {
+    console.error(e);
+    status.textContent = "Error loading programs. Ensure the sheet is public and columns match.";
   }
 }
 
+// === FILTERS ===
 function populateStateFilter() {
   const states = [...new Set(programs.map(p => p.state).filter(Boolean))].sort();
   const stateSel = by("stateFilter");
   stateSel.innerHTML = '<option value="">All States</option>';
   states.forEach(s => {
     const opt = document.createElement("option");
-    opt.value = s;
-    opt.textContent = s;
+    opt.value = s; opt.textContent = s;
     stateSel.appendChild(opt);
   });
   updateCityFilter();
@@ -79,34 +83,25 @@ function updateCityFilter() {
   const selectedState = norm(by("stateFilter").value);
   let cities = programs
     .filter(p => !selectedState || norm(p.state) === selectedState)
-    .map(p => p.city)
-    .filter(Boolean);
+    .map(p => p.city).filter(Boolean);
   cities = [...new Set(cities)].sort();
 
   const citySel = by("cityFilter");
   citySel.innerHTML = '<option value="">All Cities</option>';
   cities.forEach(c => {
     const opt = document.createElement("option");
-    opt.value = c;
-    opt.textContent = c;
+    opt.value = c; opt.textContent = c;
     citySel.appendChild(opt);
   });
 }
 
 function applyFilters() {
-  const q = norm(by("search").value);
+  const q  = norm(by("search").value);
   const st = norm(by("stateFilter").value);
   const ct = norm(by("cityFilter").value);
 
   filtered = programs.filter(p => {
-    const matchesText =
-      !q ||
-      norm(p.name).includes(q) ||
-      norm(p.address).includes(q) ||
-      norm(p.city).includes(q) ||
-      norm(p.state).includes(q) ||
-      norm(p.zip).includes(q);
-
+    const matchesText = !q || norm(p.name).includes(q);
     const matchesState = !st || norm(p.state) === st;
     const matchesCity  = !ct || norm(p.city) === ct;
     return matchesText && matchesState && matchesCity;
@@ -116,10 +111,8 @@ function applyFilters() {
   render();
 }
 
-function render() {
-  renderList();
-  renderPagination();
-}
+// === RENDER ===
+function render() { renderList(); renderPagination(); }
 
 function renderList() {
   const root = by("programList");
@@ -128,8 +121,7 @@ function renderList() {
     const empty = document.createElement("div");
     empty.className = "status";
     empty.textContent = "No matching programs.";
-    root.appendChild(empty);
-    return;
+    root.appendChild(empty); return;
   }
 
   const start = (currentPage - 1) * perPage;
@@ -143,8 +135,8 @@ function renderList() {
       <h3>${p.name}</h3>
       <p class="meta"><strong>Address:</strong> ${p.address || "—"}</p>
       <p class="meta"><strong>Phone:</strong> ${p.phone || "—"}</p>
-      <p class="meta${p.email && p.email.length>25 ? " long-email" : ""}"><strong>Email:</strong> ${p.email ? `<a href="mailto:${p.email}">${p.email}</a>` : "—"}</p>
-      ${website ? `<p style="margin-top:12px;"><a target="_blank" rel="noopener" href="${website}">Visit Website</a></p>` : ""}
+      <p class="meta\${p.email && p.email.length>25 ? " long-email" : ""}"><strong>Email:</strong> \${p.email ? \`<a href="mailto:\${p.email}">\${p.email}</a>\` : "—"}</p>
+      \${website ? \`<p style="margin-top:12px;"><a target="_blank" rel="noopener" href="\${website}">Visit Website</a></p>\` : ""}
     `;
     root.appendChild(card);
   });
@@ -187,19 +179,18 @@ function renderPagination() {
 function makePageBtn(i){
   const b = document.createElement("button");
   b.className = "page-num" + (i === currentPage ? " active" : "");
-  b.textContent = i;
-  b.onclick = () => { currentPage = i; render(); };
+  b.textContent = i; b.onclick = () => { currentPage = i; render(); };
   return b;
 }
 function addEllipsis(nav){
   const el = document.createElement("span");
-  el.className = "page-ellipsis";
-  el.textContent = "…";
-  nav.appendChild(el);
+  el.className = "page-ellipsis"; el.textContent = "…"; nav.appendChild(el);
 }
 
+// === EVENTS ===
 by("search").addEventListener("input", applyFilters);
 by("stateFilter").addEventListener("change", () => { updateCityFilter(); applyFilters(); });
 by("cityFilter").addEventListener("change", applyFilters);
 
+// === START ===
 loadPrograms();

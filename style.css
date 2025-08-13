@@ -1,7 +1,8 @@
 :root{
-  --deep:#202241;
-  --purple:#9CA0EA;
-  --green:#0EA5A5;
+  /* Exact colors from your screenshots */
+  --deep:#202241;       /* banner/navy */
+  --purple:#4850D8;     /* button purple */
+  --green:#0EA5A5;      /* accent green */
   --bg:#FFFFFF;
   --muted:#F5F7FB;
 }
@@ -13,7 +14,7 @@ html,body{margin:0;padding:0;background:var(--bg);color:var(--deep);font-family:
   padding:28px 16px;
   text-align:center;
   color:#fff;
-  background: var(--purple);
+  background: var(--deep);   /* solid deep navy, no gradient/underline */
 }
 .site-header h1{margin:0;font-weight:700}
 
@@ -36,7 +37,7 @@ html,body{margin:0;padding:0;background:var(--bg);color:var(--deep);font-family:
 }
 .filters input:focus,.filters select:focus{
   border-color:var(--purple);
-  box-shadow:0 0 0 3px rgba(92,107,242,.15);
+  box-shadow:0 0 0 3px rgba(72,80,216,.15);
 }
 
 .card-grid{
@@ -49,11 +50,13 @@ html,body{margin:0;padding:0;background:var(--bg);color:var(--deep);font-family:
   box-shadow:0 6px 18px rgba(0,0,0,.05);
   border-top:4px solid var(--green);
 }
-.card h3{margin:0 0 8px 0;color:var(--purple)}
+.card h3{margin:0 0 8px 0;color:var(--deep)}
 .card p{margin:6px 0;font-size:.92em}
 .card a{color:var(--purple);text-decoration:none;font-weight:600}
 .card a:hover{text-decoration:underline}
 .meta{font-size:.88em;color:#4a4f6a}
+.meta a[href^="mailto:"]{word-break:break-all;display:inline-block;max-width:100%}
+.meta.long-email{font-size:0.82em}
 
 .status{grid-column:1 / -1;text-align:center;padding:24px;color:#4a4f6a}
 
@@ -69,14 +72,3 @@ html,body{margin:0;padding:0;background:var(--bg);color:var(--deep);font-family:
 .page-num{background:none;border:none;color:var(--purple);cursor:pointer;padding:2px 6px}
 .page-num.active{font-weight:700;text-decoration:underline}
 .page-ellipsis{padding:0 2px;color:#6a6f8a}
-
-.site-footer{border-top:1px solid #eef1f7;padding:16px;text-align:center;background:#fafbfe}
-
-.meta a[href^="mailto:"] {
-  word-break: break-all;
-  display: inline-block;
-  max-width: 100%;
-}
-.meta.long-email {
-  font-size: 0.82em;
-}
