@@ -50,7 +50,7 @@ async function loadPrograms() {
       const zip    = safe(c[7]?.v);
       const address = [street, city, state, zip].filter(Boolean).join(", ");
       return { name, website: site, address, email, phone, state, city, zip };
-    }).filter(p => p.name);
+    }); // keep all rows, even if name is blank
     // Debug: log all programs and their states
 console.log("Loaded programs:", programs.map(p => [p.name, p.state]));
     
