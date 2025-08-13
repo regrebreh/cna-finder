@@ -16,7 +16,7 @@ const safe = v => (v ?? "").toString().trim();
 const norm = v => safe(v).toLowerCase();
 
 function gvizUrl() {
-  const base = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json`;
+  const base = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&range=A2:H`;
   return SHEET_GID ? `${base}&gid=${SHEET_GID}` : base;
 }
 
