@@ -1,7 +1,9 @@
 // === CONFIG ===
 const SHEET_ID = "19Iktmli0N9ECNHL33lPVuzM2dd3fD5dFqg5NqlBrt8Q";
-// If your data isn't on the first sheet, set GID below (find it in the sheet URL). Otherwise leave empty.
+// If your data isn't on the first sheet/tab, set its gid below (from the sheet URL). Otherwise leave "".
 const SHEET_GID = ""; // e.g., "0" or "123456789"
+
+// Expected columns (left to right): Name | Website | Address | Email | Phone | State | City | Zip
 
 // === STATE ===
 let programs = [];
@@ -15,9 +17,23 @@ const safe = v => (v ?? "").toString().trim();
 const norm = v => safe(v).toLowerCase();
 
 function gvizUrl() {
-  // gviz/tq works for publicly viewable sheets
   const base = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json`;
   return SHEET_GID ? `${base}&gid=${SHEET_GID}` : base;
+}
+
+function parseGviz(text){
+  // Try robust regex capture first
+  const match = text.match(/google\.visualization\.Query\.setResponse\((.*)\);?\s*$/s);
+  if (match && match[1]) {
+    return JSON.parse(match[1]);
+  }
+  // Fallback: slice first { to last }
+  const start = text.indexOf('{');
+  const end = text.lastIndexOf('}');
+  if (start !== -1 && end !== -1) {
+    return JSON.parse(text.slice(start, end + 1));
+  }
+  throw new Error('Unrecognized GViz response');
 }
 
 // === FETCH & PARSE ===
@@ -26,11 +42,11 @@ async function loadPrograms() {
   status.textContent = "Loading programs…";
   try {
     const res = await fetch(gvizUrl(), { cache: "no-store" });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const text = await res.text();
-    // strip leading "/*O_o*/
-google.visualization.Query.setResponse(" and trailing ");"
-    const json = JSON.parse(text.slice(text.indexOf("{"), text.lastIndexOf(")") ));
-    const rows = json.table?.rows || [];
+    const data = parseGviz(text);
+
+    const rows = data?.table?.rows || [];
     console.log("[CNA] rows fetched:", rows.length);
 
     programs = rows.map(r => {
@@ -48,16 +64,16 @@ google.visualization.Query.setResponse(" and trailing ");"
     }).filter(p => p.name);
 
     if (!programs.length) {
-      status.textContent = "No programs found. Double‑check the sheet’s sharing or column order.";
+      status.textContent = "No programs found. Check: (1) Sheet sharing is 'Anyone with link can view', (2) Column order matches, (3) Correct sheet tab (gid).";
       return;
     }
 
-    status.remove(); // clear the loading message
+    status.remove();
     populateFilters();
     applyFilters();
   } catch (err) {
-    console.error("[CNA] fetch error:", err);
-    status.textContent = "Error loading programs. Make sure the Google Sheet is public (Anyone with link can view).";
+    console.error("[CNA] fetch/parse error:", err);
+    by("status").textContent = "Error loading programs. Make sure the Google Sheet is public and the column order is correct.";
   }
 }
 
@@ -130,7 +146,7 @@ function renderList() {
   pageItems.forEach(p => {
     const card = document.createElement("div");
     card.className = "card";
-    const website = p.website && p.website.startsWith("http") ? p.website : (p.website ? `https://${p.website}` : "");
+    const website = p.website && /^https?:\/\//i.test(p.website) ? p.website : (p.website ? `https://${p.website}` : "");
     card.innerHTML = `
       <h3>${p.name}</h3>
       <p class="meta"><strong>Address:</strong> ${p.address || "—"}</p>
@@ -155,7 +171,7 @@ function renderPagination() {
   prev.onclick = () => { currentPage--; render(); };
   nav.appendChild(prev);
 
-  // Show only 3 numbers max, sliding window
+  // Show only 3 numbers max, sliding window with ellipses at edges
   const maxVis = 3;
   let start = Math.max(1, currentPage - 1);
   let end = Math.min(total, start + maxVis - 1);
