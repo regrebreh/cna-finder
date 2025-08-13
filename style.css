@@ -1,106 +1,96 @@
-/* Normalize basic styles across browsers */
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
-html, body {
-  font-family: 'Open Sans', sans-serif;
-  background-color: #ffffff;
-  color: #333;
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #ffffff;
+    margin: 0;
+    padding: 0;
+    color: #1A1B3A;
 }
 
 header {
-  text-align: center;
-  padding: 20px;
-  background-color: #004f7c;
-  color: #fff;
+    text-align: center;
+    padding: 2rem;
 }
 
-h1 {
-  margin: 0;
-  font-weight: 600;
+header h1 {
+    font-size: 2.5rem;
+    font-weight: bold;
 }
 
-.filters {
-  margin-top: 10px;
+header p {
+    font-size: 1.1rem;
+    color: #3d3e63;
 }
 
-/* Consistent input & select styling */
-.filters select,
-.filters input {
-  padding: 8px 12px;
-  margin: 5px;
-  border: 1px solid #ccc;
-  border-radius: 20px;
-  background-color: #f5f5f5;
-  font-size: 0.95em;
-  outline: none;
-  transition: border 0.3s ease;
-  -webkit-appearance: none; /* Remove Safari default styles */
-  -moz-appearance: none;
-  appearance: none;
+.search-section {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 1rem;
+    background-color: #f9f9ff;
 }
 
-.filters select:focus,
-.filters input:focus {
-  border-color: #007acc;
+.search-section input {
+    padding: 0.5rem;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 1rem;
+    width: 200px;
 }
 
-.grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
-  padding: 20px;
+.search-section button {
+    padding: 0.5rem 1rem;
+    background-color: #4D4DFF;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
 }
 
-.card {
-  background-color: #f9f9f9;
-  padding: 15px;
-  border-radius: 8px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+.search-section button:hover {
+    background-color: #3737cc;
 }
 
-.card h3 {
-  margin-top: 0;
-  color: #004f7c;
+.job-card {
+    background-color: white;
+    border: 1px solid #eee;
+    border-radius: 12px;
+    padding: 1rem;
+    margin: 0.5rem auto;
+    width: 90%;
+    max-width: 600px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
-.card p {
-  font-size: 0.9em;
-  margin: 5px 0;
+.job-card h2 {
+    color: #1A1B3A;
 }
 
-.card a {
-  color: #007acc;
-  text-decoration: none;
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 1rem;
 }
 
-.card a:hover {
-  text-decoration: underline;
+.pagination button {
+    background-color: transparent;
+    border: none;
+    font-size: 1rem;
+    color: #4D4DFF;
+    cursor: pointer;
 }
 
-#pagination {
-  text-align: center;
-  padding: 20px;
+.pagination span {
+    margin: 0 0.5rem;
 }
 
-#pagination button {
-  background: none;
-  border: none;
-  color: #004f7c;
-  font-size: 1em;
-  margin: 0 4px;
-  cursor: pointer;
-  padding: 0;
+footer {
+    text-align: center;
+    padding: 1rem;
+    background-color: #f1f1f9;
 }
 
-#pagination button.active {
-  font-weight: bold;
-  text-decoration: underline;
-}
-
-#pagination button:hover {
-  color: #007acc;
+footer .contact {
+    font-size: 0.85rem;
+    color: #555;
 }
