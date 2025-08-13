@@ -37,6 +37,12 @@ async function loadPrograms() {
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = parseGviz(await res.text());
     const rows = data?.table?.rows || [];
+    // DEBUG: show raw rows and state column before mapping
+console.log("Raw GViz rows count:", rows.length);
+rows.forEach((r, i) => {
+  const stateVal = r.c[5]?.v; // State column in A=0, so A=0,B=1,...F=5
+  console.log(`Row ${i + 1} state raw value:`, JSON.stringify(stateVal));
+});
 
     programs = rows.map(r => {
       const c = r.c || [];
