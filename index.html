@@ -2,28 +2,37 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CNA Program Search</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CNA Program Finder</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
-  <header>
-    <h1>CNA Program Search</h1>
-    <div class="filters">
-      <select id="stateFilter">
-        <option value="">All States</option>
-      </select>
-      <select id="cityFilter">
-        <option value="">All Cities</option>
-      </select>
-      <input type="text" id="searchBox" placeholder="Search programs..." />
-    </div>
+  <header class="site-header">
+    <h1>Find a CNA Program Near You</h1>
   </header>
 
-  <main>
-    <div id="programList" class="grid"></div>
-    <div id="pagination"></div>
+  <section class="filters">
+    <input id="search" type="text" placeholder="Search by name, city, or zip…"/>
+    <select id="stateFilter">
+      <option value="">All States</option>
+    </select>
+    <select id="cityFilter">
+      <option value="">All Cities</option>
+    </select>
+  </section>
+
+  <main id="programList" class="card-grid">
+    <div id="status" class="status">Loading programs…</div>
   </main>
+
+  <nav id="pagination" class="pagination"></nav>
+
+  <footer class="site-footer">
+    <small>Data sourced from your Google Sheet.</small>
+  </footer>
 
   <script src="script.js"></script>
 </body>

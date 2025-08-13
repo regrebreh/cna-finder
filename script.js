@@ -1,139 +1,204 @@
-const sheetId = "19Iktmli0N9ECNHL33lPVuzM2dd3fD5dFqg5NqlBrt8Q";
-const sheetUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json`;
+// === CONFIG ===
+const SHEET_ID = "19Iktmli0N9ECNHL33lPVuzM2dd3fD5dFqg5NqlBrt8Q";
+// If your data isn't on the first sheet, set GID below (find it in the sheet URL). Otherwise leave empty.
+const SHEET_GID = ""; // e.g., "0" or "123456789"
 
+// === STATE ===
 let programs = [];
-let filteredPrograms = [];
+let filtered = [];
 let currentPage = 1;
-const itemsPerPage = 12;
+const perPage = 12;
 
-document.addEventListener("DOMContentLoaded", () => {
-  console.log("Fetching data from Google Sheet...");
-  fetch(sheetUrl)
-    .then(res => res.text())
-    .then(text => {
-      const json = JSON.parse(text.substr(47).slice(0, -2));
-      programs = json.table.rows.map(row => ({
-        name: row.c[0]?.v || "",
-        website: row.c[1]?.v || "",
-        address: `${row.c[2]?.v || ''}, ${row.c[6]?.v || ''}, ${row.c[5]?.v || ''} ${row.c[7]?.v || ''}`,
-        email: row.c[3]?.v || "",
-        phone: row.c[4]?.v || "",
-        state: row.c[5]?.v || "",
-        city: row.c[6]?.v || "",
-        zip: row.c[7]?.v || ""
-      }));
-      console.log("Programs loaded:", programs.length);
-      populateFilters();
-      applyFilters();
-    })
-    .catch(err => {
-      console.error("Error fetching data:", err);
-      document.getElementById("programList").innerHTML = "<p>Error loading programs.</p>";
-    });
+// === HELPERS ===
+const by = id => document.getElementById(id);
+const safe = v => (v ?? "").toString().trim();
+const norm = v => safe(v).toLowerCase();
 
-  document.getElementById("stateFilter").addEventListener("change", applyFilters);
-  document.getElementById("cityFilter").addEventListener("change", applyFilters);
-  document.getElementById("searchBox").addEventListener("input", applyFilters);
-});
+function gvizUrl() {
+  // gviz/tq works for publicly viewable sheets
+  const base = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json`;
+  return SHEET_GID ? `${base}&gid=${SHEET_GID}` : base;
+}
 
+// === FETCH & PARSE ===
+async function loadPrograms() {
+  const status = by("status");
+  status.textContent = "Loading programs…";
+  try {
+    const res = await fetch(gvizUrl(), { cache: "no-store" });
+    const text = await res.text();
+    // strip leading "/*O_o*/
+google.visualization.Query.setResponse(" and trailing ");"
+    const json = JSON.parse(text.slice(text.indexOf("{"), text.lastIndexOf(")") ));
+    const rows = json.table?.rows || [];
+    console.log("[CNA] rows fetched:", rows.length);
+
+    programs = rows.map(r => {
+      const c = r.c || [];
+      const name   = safe(c[0]?.v);
+      const site   = safe(c[1]?.v);
+      const street = safe(c[2]?.v);
+      const email  = safe(c[3]?.v);
+      const phone  = safe(c[4]?.v);
+      const state  = safe(c[5]?.v);
+      const city   = safe(c[6]?.v);
+      const zip    = safe(c[7]?.v);
+      const address = [street, city, state, zip].filter(Boolean).join(", ");
+      return { name, website: site, address, email, phone, state, city, zip };
+    }).filter(p => p.name);
+
+    if (!programs.length) {
+      status.textContent = "No programs found. Double‑check the sheet’s sharing or column order.";
+      return;
+    }
+
+    status.remove(); // clear the loading message
+    populateFilters();
+    applyFilters();
+  } catch (err) {
+    console.error("[CNA] fetch error:", err);
+    status.textContent = "Error loading programs. Make sure the Google Sheet is public (Anyone with link can view).";
+  }
+}
+
+// === FILTERS ===
 function populateFilters() {
-  const stateSelect = document.getElementById("stateFilter");
-  const citySelect = document.getElementById("cityFilter");
-
   const states = [...new Set(programs.map(p => p.state).filter(Boolean))].sort();
-  const cities = [...new Set(programs.map(p => p.city).filter(Boolean))].sort();
-
-  states.forEach(state => {
+  const stateSel = by("stateFilter");
+  stateSel.innerHTML = '<option value="">All States</option>';
+  states.forEach(s => {
     const opt = document.createElement("option");
-    opt.value = state;
-    opt.textContent = state;
-    stateSelect.appendChild(opt);
+    opt.value = s;
+    opt.textContent = s;
+    stateSel.appendChild(opt);
   });
 
-  cities.forEach(city => {
+  const cities = [...new Set(programs.map(p => p.city).filter(Boolean))].sort();
+  const citySel = by("cityFilter");
+  citySel.innerHTML = '<option value="">All Cities</option>';
+  cities.forEach(c => {
     const opt = document.createElement("option");
-    opt.value = city;
-    opt.textContent = city;
-    citySelect.appendChild(opt);
+    opt.value = c;
+    opt.textContent = c;
+    citySel.appendChild(opt);
   });
 }
 
 function applyFilters() {
-  const state = document.getElementById("stateFilter").value.toLowerCase();
-  const city = document.getElementById("cityFilter").value.toLowerCase();
-  const search = document.getElementById("searchBox").value.toLowerCase();
+  const q = norm(by("search").value);
+  const st = norm(by("stateFilter").value);
+  const ct = norm(by("cityFilter").value);
 
-  filteredPrograms = programs.filter(p =>
-    (!state || p.state.toLowerCase() === state) &&
-    (!city || p.city.toLowerCase() === city) &&
-    (!search || p.name.toLowerCase().includes(search) ||
-      p.address.toLowerCase().includes(search) ||
-      p.city.toLowerCase().includes(search) ||
-      p.state.toLowerCase().includes(search) ||
-      p.zip.toLowerCase().includes(search))
-  );
+  filtered = programs.filter(p => {
+    const matchesText =
+      !q ||
+      norm(p.name).includes(q) ||
+      norm(p.address).includes(q) ||
+      norm(p.city).includes(q) ||
+      norm(p.state).includes(q) ||
+      norm(p.zip).includes(q);
 
-  currentPage = 1;
-  renderPrograms();
-}
-
-function renderPrograms() {
-  const programList = document.getElementById("programList");
-  programList.innerHTML = "";
-
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedItems = filteredPrograms.slice(startIndex, startIndex + itemsPerPage);
-
-  paginatedItems.forEach(p => {
-    const card = document.createElement("div");
-    card.className = "card";
-    card.innerHTML = `
-      <h3>${p.name}</h3>
-      <p><strong>Address:</strong> ${p.address}</p>
-      <p><strong>City:</strong> ${p.city}</p>
-      <p><strong>State:</strong> ${p.state}</p>
-      <p><strong>Zip:</strong> ${p.zip}</p>
-      <p><strong>Phone:</strong> ${p.phone}</p>
-      <p><strong>Email:</strong> <a href="mailto:${p.email}">${p.email}</a></p>
-      <p><a href="${p.website}" target="_blank">Visit Website</a></p>
-    `;
-    programList.appendChild(card);
+    const matchesState = !st || norm(p.state) === st;
+    const matchesCity  = !ct || norm(p.city) === ct;
+    return matchesText && matchesState && matchesCity;
   });
 
+  currentPage = 1;
+  render();
+}
+
+// === RENDER ===
+function render() {
+  renderList();
   renderPagination();
 }
 
+function renderList() {
+  const root = by("programList");
+  root.innerHTML = "";
+  if (!filtered.length) {
+    const empty = document.createElement("div");
+    empty.className = "status";
+    empty.textContent = "No matching programs.";
+    root.appendChild(empty);
+    return;
+  }
+
+  const start = (currentPage - 1) * perPage;
+  const pageItems = filtered.slice(start, start + perPage);
+
+  pageItems.forEach(p => {
+    const card = document.createElement("div");
+    card.className = "card";
+    const website = p.website && p.website.startsWith("http") ? p.website : (p.website ? `https://${p.website}` : "");
+    card.innerHTML = `
+      <h3>${p.name}</h3>
+      <p class="meta"><strong>Address:</strong> ${p.address || "—"}</p>
+      <p class="meta"><strong>Phone:</strong> ${p.phone || "—"}</p>
+      <p class="meta"><strong>Email:</strong> ${p.email ? `<a href="mailto:${p.email}">${p.email}</a>` : "—"}</p>
+      ${website ? `<p><a target="_blank" rel="noopener" href="${website}">Visit Website</a></p>` : ""}
+    `;
+    root.appendChild(card);
+  });
+}
 
 function renderPagination() {
-  const pagination = document.getElementById("pagination");
-  pagination.innerHTML = "";
+  const total = Math.ceil(filtered.length / perPage);
+  const nav = by("pagination");
+  nav.innerHTML = "";
+  if (total <= 1) return;
 
-  const totalPages = Math.ceil(filteredPrograms.length / itemsPerPage);
-  const maxVisible = 3;
-  let startPage = Math.max(1, currentPage - 1);
-  let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+  // Prev
+  const prev = document.createElement("button");
+  prev.textContent = "Prev";
+  prev.disabled = currentPage === 1;
+  prev.onclick = () => { currentPage--; render(); };
+  nav.appendChild(prev);
 
-  const prevBtn = document.createElement("button");
-  prevBtn.textContent = "Prev";
-  prevBtn.disabled = currentPage === 1;
-  prevBtn.onclick = () => { currentPage--; renderPrograms(); };
-  pagination.appendChild(prevBtn);
+  // Show only 3 numbers max, sliding window
+  const maxVis = 3;
+  let start = Math.max(1, currentPage - 1);
+  let end = Math.min(total, start + maxVis - 1);
+  if (end - start + 1 < maxVis) start = Math.max(1, end - maxVis + 1);
 
-  for (let i = startPage; i <= endPage; i++) {
-    const btn = document.createElement("button");
-    btn.textContent = i;
-    if (i === currentPage) btn.classList.add("active");
-    btn.onclick = () => { currentPage = i; renderPrograms(); };
-    pagination.appendChild(btn);
+  if (start > 1) {
+    nav.appendChild(makePageBtn(1));
+    if (start > 2) addEllipsis(nav);
   }
 
-  const nextBtn = document.createElement("button");
-  nextBtn.textContent = "Next";
-  nextBtn.disabled = currentPage === totalPages;
-  nextBtn.onclick = () => { currentPage++; renderPrograms(); };
-  pagination.appendChild(nextBtn);
-}
-);
-    pagination.appendChild(btn);
+  for (let i = start; i <= end; i++) nav.appendChild(makePageBtn(i));
+
+  if (end < total) {
+    if (end < total - 1) addEllipsis(nav);
+    nav.appendChild(makePageBtn(total));
   }
+
+  // Next
+  const next = document.createElement("button");
+  next.textContent = "Next";
+  next.disabled = currentPage === total;
+  next.onclick = () => { currentPage++; render(); };
+  nav.appendChild(next);
 }
+
+function makePageBtn(i){
+  const b = document.createElement("button");
+  b.className = "page-num" + (i === currentPage ? " active" : "");
+  b.textContent = i;
+  b.onclick = () => { currentPage = i; render(); };
+  return b;
+}
+function addEllipsis(nav){
+  const el = document.createElement("span");
+  el.className = "page-ellipsis";
+  el.textContent = "…";
+  nav.appendChild(el);
+}
+
+// === WIRE EVENTS ===
+by("search").addEventListener("input", applyFilters);
+by("stateFilter").addEventListener("change", applyFilters);
+by("cityFilter").addEventListener("change", applyFilters);
+
+// === INIT ===
+loadPrograms();
