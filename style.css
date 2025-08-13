@@ -1,8 +1,7 @@
 :root{
-  /* Exact colors from your screenshots */
-  --deep:#202241;       /* banner/navy */
-  --purple:#4850D8;     /* button purple */
-  --green:#0EA5A5;      /* accent green */
+  --deep:#202241;     /* exact banner/navy from screenshot */
+  --purple:#4850D8;   /* exact purple from screenshot */
+  --green:#0EA5A5;    /* accent green */
   --bg:#FFFFFF;
   --muted:#F5F7FB;
 }
@@ -14,7 +13,7 @@ html,body{margin:0;padding:0;background:var(--bg);color:var(--deep);font-family:
   padding:28px 16px;
   text-align:center;
   color:#fff;
-  background: var(--deep);   /* solid deep navy, no gradient/underline */
+  background: var(--deep); /* solid, no gradient/underline */
 }
 .site-header h1{margin:0;font-weight:700}
 
@@ -55,8 +54,8 @@ html,body{margin:0;padding:0;background:var(--bg);color:var(--deep);font-family:
 .card a{color:var(--purple);text-decoration:none;font-weight:600}
 .card a:hover{text-decoration:underline}
 .meta{font-size:.88em;color:#4a4f6a}
-.meta a[href^="mailto:"]{word-break:break-all;display:inline-block;max-width:100%}
 .meta.long-email{font-size:0.82em}
+.meta .email-text{word-break: break-all;}
 
 .status{grid-column:1 / -1;text-align:center;padding:24px;color:#4a4f6a}
 

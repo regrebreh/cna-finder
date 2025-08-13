@@ -131,12 +131,16 @@ function renderList() {
     const card = document.createElement("div");
     card.className = "card";
     const website = p.website && /^https?:\/\//i.test(p.website) ? p.website : (p.website ? `https://${p.website}` : "");
+
+    const emailClass = p.email && p.email.length > 25 ? "meta long-email" : "meta";
+    const emailText  = p.email || "—";
+
     card.innerHTML = `
       <h3>${p.name}</h3>
       <p class="meta"><strong>Address:</strong> ${p.address || "—"}</p>
       <p class="meta"><strong>Phone:</strong> ${p.phone || "—"}</p>
-      <p class="meta\${p.email && p.email.length>25 ? " long-email" : ""}"><strong>Email:</strong> \${p.email ? \`<a href="mailto:\${p.email}">\${p.email}</a>\` : "—"}</p>
-      \${website ? \`<p style="margin-top:12px;"><a target="_blank" rel="noopener" href="\${website}">Visit Website</a></p>\` : ""}
+      <p class="${emailClass}"><strong>Email:</strong> <span class="email-text">${emailText}</span></p>
+      ${website ? `<p style="margin-top:12px;"><a target="_blank" rel="noopener" href="${website}">Visit Website</a></p>` : ""}
     `;
     root.appendChild(card);
   });
@@ -179,12 +183,15 @@ function renderPagination() {
 function makePageBtn(i){
   const b = document.createElement("button");
   b.className = "page-num" + (i === currentPage ? " active" : "");
-  b.textContent = i; b.onclick = () => { currentPage = i; render(); };
+  b.textContent = i;
+  b.onclick = () => { currentPage = i; render(); };
   return b;
 }
 function addEllipsis(nav){
   const el = document.createElement("span");
-  el.className = "page-ellipsis"; el.textContent = "…"; nav.appendChild(el);
+  el.className = "page-ellipsis";
+  el.textContent = "…";
+  nav.appendChild(el);
 }
 
 // === EVENTS ===
@@ -192,5 +199,5 @@ by("search").addEventListener("input", applyFilters);
 by("stateFilter").addEventListener("change", () => { updateCityFilter(); applyFilters(); });
 by("cityFilter").addEventListener("change", applyFilters);
 
-// === START ===
+// === INIT ===
 loadPrograms();
