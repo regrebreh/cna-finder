@@ -1,3 +1,6 @@
+body {
+  font-family: 'Poppins', sans-serif;
+}
 :root{
   --deep:#202241;     /* exact banner/navy from screenshot */
   --purple:#4850D8;   /* exact purple from screenshot */
